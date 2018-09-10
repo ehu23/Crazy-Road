@@ -15,9 +15,13 @@ class GameViewController: UIViewController {
     var scene: SCNScene!
     var sceneView: SCNView!
     
+    var cameraNode = SCNNode()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         setupScene()
+        setupFloor()
+        setupCamera()
     }
     
     
@@ -26,5 +30,21 @@ class GameViewController: UIViewController {
         scene = SCNScene()
         
         sceneView.scene = scene
+    }
+    
+    func setupFloor() {
+        let floor = SCNFloor()
+        floor.firstMaterial?.diffuse.contents = UIColor.green
+        floor.reflectivity = 0.0
+        
+        let floorNode = SCNNode(geometry: floor)
+        scene.rootNode.addChildNode(floorNode)
+    }
+    
+    func setupCamera() {
+        cameraNode.camera = SCNCamera()
+        cameraNode.position = SCNVector3(x: 0, y: 10, z: 0) //height of 10
+        cameraNode.eulerAngles = SCNVector3(x: -.pi/2, y: 0, z: 0) //rotate camera down 90 deg since default is looking straight
+        scene.rootNode.addChildNode(cameraNode)
     }
 }
