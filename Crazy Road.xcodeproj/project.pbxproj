@@ -13,6 +13,8 @@
 		2C9903ED21473457002A9B75 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 2C9903EB21473457002A9B75 /* Main.storyboard */; };
 		2C9903EF21473457002A9B75 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2C9903EE21473457002A9B75 /* Assets.xcassets */; };
 		2C9903F221473457002A9B75 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 2C9903F021473457002A9B75 /* LaunchScreen.storyboard */; };
+		2C9903FA214738F8002A9B75 /* LaneNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C9903F9214738F8002A9B75 /* LaneNode.swift */; };
+		2C9903FC21473E47002A9B75 /* Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C9903FB21473E47002A9B75 /* Utilities.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -24,6 +26,8 @@
 		2C9903EE21473457002A9B75 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		2C9903F121473457002A9B75 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		2C9903F321473457002A9B75 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		2C9903F9214738F8002A9B75 /* LaneNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaneNode.swift; sourceTree = "<group>"; };
+		2C9903FB21473E47002A9B75 /* Utilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Utilities.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -63,6 +67,8 @@
 				2C9903EE21473457002A9B75 /* Assets.xcassets */,
 				2C9903F021473457002A9B75 /* LaunchScreen.storyboard */,
 				2C9903F321473457002A9B75 /* Info.plist */,
+				2C9903F9214738F8002A9B75 /* LaneNode.swift */,
+				2C9903FB21473E47002A9B75 /* Utilities.swift */,
 			);
 			path = "Crazy Road";
 			sourceTree = "<group>";
@@ -139,7 +145,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2C9903FA214738F8002A9B75 /* LaneNode.swift in Sources */,
 				2C9903EA21473457002A9B75 /* GameViewController.swift in Sources */,
+				2C9903FC21473E47002A9B75 /* Utilities.swift in Sources */,
 				2C9903E621473457002A9B75 /* AppDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
