@@ -16,6 +16,7 @@ class GameViewController: UIViewController {
     var sceneView: SCNView!
     
     var cameraNode = SCNNode()
+    var lightNode = SCNNode()
     var mapNode = SCNNode()
     var lanes = [LaneNode]()
     var laneCount = 0
@@ -26,6 +27,7 @@ class GameViewController: UIViewController {
         setupScene()
         setupFloor()
         setupCamera()
+        setupLight()
     }
     
     
@@ -63,5 +65,24 @@ class GameViewController: UIViewController {
         cameraNode.position = SCNVector3(x: 0, y: 10, z: 0) //height of 10
         cameraNode.eulerAngles = SCNVector3(x: -toRadians(angle: 72), y: toRadians(angle: 9), z: 0) //rotate camera down 90 deg since default is looking straight
         scene.rootNode.addChildNode(cameraNode)
+    }
+    
+    func setupLight() {
+        let ambientNode = SCNNode()
+        ambientNode.light = SCNLight()
+        ambientNode.light?.type = .ambient
+        
+        let directionalNode = SCNNode()
+        directionalNode.light = SCNLight()
+        directionalNode.light?.type = .directional
+        directionalNode.light?.castsShadow = true
+        directionalNode.light?.shadowColor = UIColor(red: 0.4, green: 0.4, blue: 0.4, alpha: 1)
+        directionalNode.position = SCNVector3(x: -5, y: 5, z: 0)
+        directionalNode.eulerAngles = SCNVector3(x: 0, y: -toRadians(angle: 90), z: -toRadians(angle: 45))
+        
+        lightNode.addChildNode(ambientNode)
+        lightNode.addChildNode(directionalNode)
+        lightNode.position = cameraNode.position
+        scene.rootNode.addChildNode(lightNode)
     }
 }
