@@ -40,6 +40,26 @@ class LaneNode: SCNNode {
         
         let laneNode = SCNNode(geometry: laneGeometry)
         addChildNode(laneNode)
+        addElements(width, laneNode)
+    }
+    
+    func addElements(_ width: CGFloat, _ laneNode: SCNNode) {
+        for index in 0..<Int(width) {
+            if type == .grass {
+                if randomBool(odds: 7) {
+                    let vegetation = getVegetation()
+                    vegetation.position = SCNVector3(x: 10 - Float(index), y: 0, z: 0) //since 10 is the rightmost column
+                    laneNode.addChildNode(vegetation)
+                }
+            } else if type == .road {
+                
+            }
+        }
+    }
+    
+    func getVegetation() -> SCNNode{
+        let vegetation = randomBool(odds: 2) ? Models.tree.clone() : Models.hedge.clone()
+        return vegetation
     }
     
     required init?(coder aDecoder: NSCoder) {

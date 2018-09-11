@@ -9,6 +9,15 @@
 import Foundation
 import SceneKit
 
+struct Models {
+    //so we dont have to initialize over and over again in code which uses a lot of memory (the textures), just do it once and clone it
+    private static let treeScene = SCNScene(named: "art.scnassets/Tree.scn")!
+    static let tree = treeScene.rootNode.childNode(withName: "tree", recursively: true)!
+    
+    private static let hedgeScene = SCNScene(named: "art.scnassets/Hedge.scn")!
+    static let hedge = hedgeScene.rootNode.childNode(withName: "hedge", recursively: true)!
+    
+}
 let degreesPerRadians = Float(Double.pi/180)
 let radiansPerDegrees = Float(180/Double.pi)
 
