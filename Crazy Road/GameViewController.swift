@@ -22,6 +22,10 @@ class GameViewController: UIViewController {
     var lanes = [LaneNode]()
     var laneCount = 0
     
+    var jumpForwardAction: SCNAction?
+    var jumpRightAction: SCNAction?
+    var jumpLeftAction: SCNAction?
+    var jumpBackAction: SCNAction?
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -30,6 +34,8 @@ class GameViewController: UIViewController {
         setupFloor()
         setupCamera()
         setupLight()
+        setupGestures()
+        setupActions()
     }
     
     
@@ -95,5 +101,86 @@ class GameViewController: UIViewController {
         lightNode.addChildNode(directionalNode)
         lightNode.position = cameraNode.position
         scene.rootNode.addChildNode(lightNode)
+    }
+    
+    func setupGestures() {
+        let swipeUp = UISwipeGestureRecognizer(target: self, action: #selector(handleSwipe))
+        swipeUp.direction = .up
+        sceneView.addGestureRecognizer(swipeUp)
+        
+        let swipeRight = UISwipeGestureRecognizer(target: self, action: #selector(handleSwipe))
+        swipeRight.direction = .right
+        sceneView.addGestureRecognizer(swipeRight)
+        
+        let swipeLeft = UISwipeGestureRecognizer(target: self, action: #selector(handleSwipe))
+        swipeLeft.direction = .left
+        sceneView.addGestureRecognizer(swipeLeft)
+        
+        let swipeDown = UISwipeGestureRecognizer(target: self, action: #selector(handleSwipe))
+        swipeDown.direction = .down
+        sceneView.addGestureRecognizer(swipeDown)
+    }
+
+    func setupActions() {
+        let moveUpAction = SCNAction.moveBy(x: 0, y: 1.0, z: 0, duration: 0.1)
+        let moveDownAction = SCNAction.moveBy(x: 0, y: -1.0, z: 0, duration: 0.1)
+        moveUpAction.timingMode = .easeOut
+        moveDownAction.timingMode = .easeIn
+        let jumpAction = SCNAction.sequence([moveUpAction, moveDownAction])
+        
+        let moveForwardAction = SCNAction.moveBy(x: 0, y: 0, z: -1.0, duration: 0.2) //right hand rule lol
+        let moveRightAction = SCNAction.moveBy(x: 1.0, y: 0, z: 0, duration: 0.2)
+        let moveLeftAction = SCNAction.moveBy(x: -1.0, y: 0, z: 0, duration: 0.2)
+        let moveBackAction = SCNAction.moveBy(x: 0, y: 0, z: 1.0, duration: 0.2)
+        
+        let turnForwardAction = SCNAction.rotateTo(x: 0, y: toRadians(angle: 180), z: 0, duration: 0.2, usesShortestUnitArc: true)
+        let turnRightAction = SCNAction.rotateTo(x: 0, y: toRadians(angle: 90), z: 0, duration: 0.2, usesShortestUnitArc: true)
+        let turnLeftAction = SCNAction.rotateTo(x: 0, y: toRadians(angle: -90), z: 0, duration: 0.2, usesShortestUnitArc: true)
+        let turnBackAction = SCNAction.rotateTo(x: 0, y: 0, z: 0, duration: 0.2, usesShortestUnitArc: true)
+        
+        jumpForwardAction = SCNAction.group([turnForwardAction, jumpAction, moveForwardAction])
+        jumpRightAction = SCNAction.group([turnRightAction, jumpAction, moveRightAction])
+        jumpLeftAction = SCNAction.group([turnLeftAction, jumpAction, moveLeftAction])
+        jumpBackAction = SCNAction.group([turnBackAction, jumpAction, moveBackAction])
+    }
+    
+    func jumpForward() {
+        if let action = jumpForwardAction {
+            playerNode.runAction(action)
+        }
+    }
+    
+    func jumpBack() {
+        if let action = jumpBackAction {
+            playerNode.runAction(action)
+        }
+    }
+}
+
+
+extension GameViewController {
+    
+    @objc func handleSwipe(_ sender: UISwipeGestureRecognizer) {
+        
+        switch sender.direction {
+        case UISwipeGestureRecognizerDirection.up:
+            jumpForward()
+        case UISwipeGestureRecognizerDirection.right:
+            if playerNode.position.x < 10 {
+                if let action = jumpRightAction {
+                    playerNode.runAction(action)
+                }
+            }
+        case UISwipeGestureRecognizerDirection.left:
+            if playerNode.position.x > -10 {
+                if let action = jumpLeftAction {
+                    playerNode.runAction(action)
+                }
+            }
+        case UISwipeGestureRecognizerDirection.down:
+            jumpBack()
+        default:
+            break
+        }
     }
 }
