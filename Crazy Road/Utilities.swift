@@ -9,6 +9,17 @@
 import Foundation
 import SceneKit
 
+struct PhysicsCategories {
+    
+    static let chicken = 1
+    static let vehicle = 2
+    static let vegetation = 4
+    
+    static let collisionTestFront = 8
+    static let collisionTestRight = 16
+    static let collisionTestLeft = 32
+    static let collisionTestBack = 64
+}
 struct Models {
     //so we dont have to initialize over and over again in code which uses a lot of memory (the textures), just do it once and clone it
     private static let treeScene = SCNScene(named: "art.scnassets/Tree.scn")!
