@@ -9,11 +9,19 @@
 import UIKit
 import QuartzCore
 import SceneKit
+import SpriteKit
+
+enum GameState {
+    case menu, playing, gameOver
+}
 
 class GameViewController: UIViewController {
 
     var scene: SCNScene!
     var sceneView: SCNView!
+    var gameHUD: GameHUD!
+    var gameState = GameState.menu
+    var score = 0
     
     var cameraNode = SCNNode()
     var lightNode = SCNNode()
@@ -29,6 +37,7 @@ class GameViewController: UIViewController {
     var jumpBackAction: SCNAction?
     var driveRightAction: SCNAction?
     var driveLeftAction: SCNAction?
+    var dieAction: SCNAction?
     
     var frontBlocked = false
     var rightBlocked = false
@@ -37,13 +46,41 @@ class GameViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        initializeGame()
+    }
+    
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        switch gameState {
+        case .menu:
+            setupGestures()
+            gameHUD = GameHUD(with: sceneView.bounds.size, menu: false)
+            sceneView.overlaySKScene = gameHUD
+            sceneView.overlaySKScene?.isUserInteractionEnabled = false
+            gameState = .playing
+        default:
+            break
+        }
+    }
+    
+    func resetGame() {
+        scene.rootNode.enumerateChildNodes { (node, _) in
+            node.removeFromParentNode()
+        }
+        scene = nil
+        gameState = .menu
+        score = 0
+        laneCount = 0
+        lanes = [LaneNode]()
+        initializeGame()
+    }
+    
+    func initializeGame() {
         setupScene()
         setupPlayer()
         setupCollisionNode()
         setupFloor()
         setupCamera()
         setupLight()
-        setupGestures()
         setupActions()
         setupTraffic()
     }
@@ -55,11 +92,23 @@ class GameViewController: UIViewController {
         
         scene = SCNScene()
         scene.physicsWorld.contactDelegate = self
-        sceneView.scene = scene
+        sceneView.present(scene, with: .crossFade(withDuration: 0.0), incomingPointOfView: nil, completionHandler: nil)
+        //sceneView.scene = scene
+        
+        DispatchQueue.main.async {
+            self.gameHUD = GameHUD(with: self.sceneView.bounds.size, menu: true)
+            self.sceneView.overlaySKScene = self.gameHUD
+            self.sceneView.overlaySKScene?.isUserInteractionEnabled = false
+        }
         
         scene.rootNode.addChildNode(mapNode)
-        for _ in 0..<20 {
-            createNewLane()
+        for _ in 0..<10 {
+            createNewLane(initial: true)
+        }
+        
+        for _ in 0..<10 {
+            createNewLane(initial: false)
+            
         }
     }
     
@@ -73,6 +122,7 @@ class GameViewController: UIViewController {
     }
     
     func setupCollisionNode() {
+        collisionNode = CollisionNode() //needed to reinitialize/reset when game restarts
         collisionNode.position = playerNode.position
         scene.rootNode.addChildNode(collisionNode)
     }
@@ -157,6 +207,9 @@ class GameViewController: UIViewController {
         
         driveRightAction = SCNAction.repeatForever(SCNAction.move(by: SCNVector3(x: 2.0, y: 0, z: 0), duration: 1.0))
         driveLeftAction = SCNAction.repeatForever(SCNAction.move(by: SCNVector3(x: -2.0, y: 0, z: 0), duration: 1.0))
+        
+        dieAction = SCNAction.repeat(SCNAction.rotate(by: .pi*2, around: SCNVector3(x: 0, y: 5, z: 0) ,duration: 0.2), count: 10)
+        dieAction?.timingMode = .easeInEaseOut
     }
     
     func setupTraffic() {
@@ -215,7 +268,7 @@ class GameViewController: UIViewController {
     func addLanes() {
         //create two lanes. two since if you go forward, and the game is slightly tilted, you can see a bit of 2 lanes
         for _ in 0...1 {
-            createNewLane()
+            createNewLane(initial : false)
         }
         
         removeUnusedLanes()
@@ -226,13 +279,14 @@ class GameViewController: UIViewController {
             if !sceneView.isNode(child, insideFrustumOf: cameraNode) && child.worldPosition.z > playerNode.worldPosition.z {
                 child.removeFromParentNode()
                 lanes.removeFirst()
-                print("removed unused lane")
+                score += 1
+                gameHUD.pointsLabel?.text = String(score)
             }
         }
     }
     
-    func createNewLane() {
-        let type = randomBool(odds: 3) ? LaneType.grass : LaneType.road
+    func createNewLane(initial: Bool) {
+        let type = randomBool(odds: 3) || initial ? LaneType.grass : LaneType.road
         let lane = LaneNode(type: type, width: 21)
         lane.position = SCNVector3(x: 0, y: 0, z: 5 - Float(laneCount)) //z==5 is the first lane when you start the game at the bottom. its the initial distance.
         laneCount += 1
@@ -248,7 +302,24 @@ class GameViewController: UIViewController {
         guard let driveAction = trafficNode.directionRight ? driveRightAction : driveLeftAction else {return}
         driveAction.speed = 1/CGFloat(trafficNode.type + 1) + 0.5 //our types range from 0 - 2. +0.5 makes the speed a bit faster
         for vehicle in trafficNode.childNodes {
+            vehicle.removeAllActions()
             vehicle.runAction(driveAction)
+        }
+    }
+    
+    func gameOver() {
+        DispatchQueue.main.async {
+            if let gestureRecognizers = self.sceneView.gestureRecognizers {
+                for recognizer in gestureRecognizers {
+                    self.sceneView.removeGestureRecognizer(recognizer)
+                }
+            }
+        }
+        gameState = .gameOver
+        if let action = dieAction {
+            playerNode.runAction(action) {
+                self.resetGame()
+            }
         }
     }
 }
@@ -270,7 +341,7 @@ extension GameViewController : SCNPhysicsContactDelegate {
         
         switch mask {
         case PhysicsCategories.chicken | PhysicsCategories.vehicle:
-            print("lose")
+            gameOver()
         case PhysicsCategories.vegetation | PhysicsCategories.collisionTestFront:
             frontBlocked = true
         case PhysicsCategories.vegetation | PhysicsCategories.collisionTestRight:
