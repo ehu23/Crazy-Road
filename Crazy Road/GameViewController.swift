@@ -41,6 +41,7 @@ class GameViewController: UIViewController {
     
     func setupScene() {
         sceneView = view as! SCNView
+        sceneView.delegate = self //for SCNSceneRendererDelegate
         scene = SCNScene()
         
         sceneView.scene = scene
@@ -80,7 +81,7 @@ class GameViewController: UIViewController {
     func setupCamera() {
         cameraNode.camera = SCNCamera()
         cameraNode.position = SCNVector3(x: 0, y: 10, z: 0) //height of 10
-        cameraNode.eulerAngles = SCNVector3(x: -toRadians(angle: 72), y: toRadians(angle: 9), z: 0) //rotate camera down 90 deg since default is looking straight
+        cameraNode.eulerAngles = SCNVector3(x: -toRadians(angle: 60), y: toRadians(angle: 20), z: 0) //rotate camera down 90 deg since default is looking straight
         scene.rootNode.addChildNode(cameraNode)
     }
     
@@ -128,7 +129,7 @@ class GameViewController: UIViewController {
         moveDownAction.timingMode = .easeIn
         let jumpAction = SCNAction.sequence([moveUpAction, moveDownAction])
         
-        let moveForwardAction = SCNAction.moveBy(x: 0, y: 0, z: -1.0, duration: 0.2) //right hand rule lol
+        let moveForwardAction = SCNAction.moveBy(x: 0, y: 0, z: -1.0, duration: 0.2) //right hand rule lol. Y is up and down via "height". X is left and right via the screen. Z is up and down via the screen.
         let moveRightAction = SCNAction.moveBy(x: 1.0, y: 0, z: 0, duration: 0.2)
         let moveLeftAction = SCNAction.moveBy(x: -1.0, y: 0, z: 0, duration: 0.2)
         let moveBackAction = SCNAction.moveBy(x: 0, y: 0, z: 1.0, duration: 0.2)
@@ -154,6 +155,26 @@ class GameViewController: UIViewController {
         if let action = jumpBackAction {
             playerNode.runAction(action)
         }
+    }
+    
+    func updatePositions() {
+        //our model moves in x and z directions only
+        let diffX = (playerNode.position.x + 1 - cameraNode.position.x)
+        let diffZ = (playerNode.position.z + 2 - cameraNode.position.z)
+        //+1 and +2 to move the camera angled at the player instead of right above
+        
+        cameraNode.position.x += diffX
+        cameraNode.position.z += diffZ
+        
+        lightNode.position = cameraNode.position
+     
+    }
+}
+
+extension GameViewController : SCNSceneRendererDelegate {
+    
+    func renderer(_ renderer: SCNSceneRenderer, didApplyAnimationsAtTime time: TimeInterval) {
+        updatePositions()
     }
 }
 
