@@ -48,12 +48,7 @@ class GameViewController: UIViewController {
         
         scene.rootNode.addChildNode(mapNode)
         for _ in 0..<20 {
-            let type = randomBool(odds: 3) ? LaneType.grass : LaneType.road
-            let lane = LaneNode(type: type, width: 21)
-            lane.position = SCNVector3(x: 0, y: 0, z: 5 - Float(laneCount))
-            laneCount += 1
-            lanes.append(lane)
-            mapNode.addChildNode(lane)
+            createNewLane()
         }
     }
     
@@ -147,6 +142,7 @@ class GameViewController: UIViewController {
     
     func jumpForward() {
         if let action = jumpForwardAction {
+            addLanes()
             playerNode.runAction(action)
         }
     }
@@ -168,6 +164,34 @@ class GameViewController: UIViewController {
         
         lightNode.position = cameraNode.position
      
+    }
+    
+    func addLanes() {
+        //create two lanes. two since if you go forward, and the game is slightly tilted, you can see a bit of 2 lanes
+        for _ in 0...1 {
+            createNewLane()
+        }
+        
+        removeUnusedLanes()
+    }
+    
+    func removeUnusedLanes() {
+        for child in mapNode.childNodes {
+            if !sceneView.isNode(child, insideFrustumOf: cameraNode) && child.worldPosition.z > playerNode.worldPosition.z {
+                child.removeFromParentNode()
+                lanes.removeFirst()
+                print("removed unused lane")
+            }
+        }
+    }
+    
+    func createNewLane() {
+        let type = randomBool(odds: 3) ? LaneType.grass : LaneType.road
+        let lane = LaneNode(type: type, width: 21)
+        lane.position = SCNVector3(x: 0, y: 0, z: 5 - Float(laneCount)) //z==5 is the first lane when you start the game at the bottom. its the initial distance.
+        laneCount += 1
+        lanes.append(lane)
+        mapNode.addChildNode(lane)
     }
 }
 
@@ -199,7 +223,9 @@ extension GameViewController {
                 }
             }
         case UISwipeGestureRecognizerDirection.down:
-            jumpBack()
+            if playerNode.position.z < mapNode.childNodes.first!.worldPosition.z {
+                jumpBack()
+            }
         default:
             break
         }
