@@ -26,6 +26,8 @@ class GameViewController: UIViewController {
     var jumpRightAction: SCNAction?
     var jumpLeftAction: SCNAction?
     var jumpBackAction: SCNAction?
+    var driveRightAction: SCNAction?
+    var driveLeftAction: SCNAction?
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -36,6 +38,7 @@ class GameViewController: UIViewController {
         setupLight()
         setupGestures()
         setupActions()
+        setupTraffic()
     }
     
     
@@ -138,6 +141,17 @@ class GameViewController: UIViewController {
         jumpRightAction = SCNAction.group([turnRightAction, jumpAction, moveRightAction])
         jumpLeftAction = SCNAction.group([turnLeftAction, jumpAction, moveLeftAction])
         jumpBackAction = SCNAction.group([turnBackAction, jumpAction, moveBackAction])
+        
+        driveRightAction = SCNAction.repeatForever(SCNAction.move(by: SCNVector3(x: 2.0, y: 0, z: 0), duration: 1.0))
+        driveLeftAction = SCNAction.repeatForever(SCNAction.move(by: SCNVector3(x: -2.0, y: 0, z: 0), duration: 1.0))
+    }
+    
+    func setupTraffic() {
+        for lane in lanes {
+            if let trafficNode = lane.trafficNode {
+                addActions(for: trafficNode)
+            }
+        }
     }
     
     func jumpForward() {
@@ -166,6 +180,19 @@ class GameViewController: UIViewController {
      
     }
     
+    func updateTraffic() {
+        for lane in lanes {
+            guard let trafficNode = lane.trafficNode else {continue}
+            for vehicle in trafficNode.childNodes {
+                if vehicle.position.x > 10 {
+                    vehicle.position.x = -10
+                } else if vehicle.position.x < -10 {
+                    vehicle.position.x = 10
+                }
+            }
+        }
+    }
+    
     func addLanes() {
         //create two lanes. two since if you go forward, and the game is slightly tilted, you can see a bit of 2 lanes
         for _ in 0...1 {
@@ -192,13 +219,26 @@ class GameViewController: UIViewController {
         laneCount += 1
         lanes.append(lane)
         mapNode.addChildNode(lane)
+        
+        if let trafficNode = lane.trafficNode { //will not do anything at beginning since setupActions is after setupScene but thats why we added setupTraffic to implement this same functionality
+            addActions(for: trafficNode)
+        }
+    }
+    
+    func addActions(for trafficNode: TrafficNode) {
+        guard let driveAction = trafficNode.directionRight ? driveRightAction : driveLeftAction else {return}
+        driveAction.speed = 1/CGFloat(trafficNode.type + 1) + 0.5 //our types range from 0 - 2. +0.5 makes the speed a bit faster
+        for vehicle in trafficNode.childNodes {
+            vehicle.runAction(driveAction)
+        }
     }
 }
 
-extension GameViewController : SCNSceneRendererDelegate {
+extension GameViewController : SCNSceneRendererDelegate { //this is constantly called since its the renderer
     
     func renderer(_ renderer: SCNSceneRenderer, didApplyAnimationsAtTime time: TimeInterval) {
         updatePositions()
+        updateTraffic()
     }
 }
 
